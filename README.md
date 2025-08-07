@@ -68,14 +68,12 @@
 
     ```yaml
     # docker-compose.app.yml
-    version: '3.5'
+    version: '3.8'
     services:
       app:
         # 替换为您自己的Docker Hub用户名和镜像名，或使用本地构建
         image: l429609201/misaka_danmu_server:latest
-        # 如果您想从源代码构建，请取消注释下一行并注释掉上面的 'image' 行
-        # build: .
-        container_name: danmu-api
+        container_name: misaka-danmu-server
         restart: unless-stopped
         # 使用主机网络模式，容器将直接使用宿主机的网络。
         # 这意味着容器内的 127.0.0.1 就是宿主机的 127.0.0.1。
@@ -83,6 +81,10 @@
         # 推荐使用host模式
         network_mode: "host"
         environment:
+          # --- 用户与组ID (用于运行时，与构建时匹配) ---
+          - PUID=1000
+          - PGID=1000
+
           # --- 数据库连接配置 ---
           # '127.0.0.1' 指向宿主机，因为我们使用了主机网络模式
           - DANMUAPI_DATABASE__HOST=127.0.0.1
@@ -149,6 +151,3 @@
 
 > **兼容性说明**: 本服务已对路由进行特殊处理，无论您使用 `.../api/<Token>` 还是 `.../api/<Token>/api/v2` 格式，服务都能正确响应，以最大程度兼容不同客户端。
 
-### 3. 关于 Yamby 客户端的兼容性说明
-
-部分版本的 Yamby 客户端在实现上存在一个问题：当它通过 `/search/anime` 接口搜索到作品后，会错误地使用返回结果中的 `animeId` 字段去请求 `/bangumi/{bangumiid}` 接口，而该接口按 dandanplay 规范应使用 `bangumiId` 字段。
